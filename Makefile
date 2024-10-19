@@ -2,7 +2,7 @@
 
 run:
 	@echo "run server"
-	uvicorn application.main:app --host 0.0.0.0 --port 85 --reload
+	uvicorn application.main:main_app --host 0.0.0.0 --port 85 --reload
 
 help:
 	@echo "Usage: make [command]"

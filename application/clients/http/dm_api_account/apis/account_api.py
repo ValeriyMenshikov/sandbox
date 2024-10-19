@@ -10,10 +10,10 @@ Do not edit the class manually.
 from httpx import Response
 
 
-from app.clients.http.base import BaseClient
+from application.clients.http.base import BaseClient
 
 
-from app.clients.http.dm_api_account.models.api_models import (
+from application.clients.http.dm_api_account.models.api_models import (
     UserDetailsEnvelope,
     ChangeEmail,
     Registration,

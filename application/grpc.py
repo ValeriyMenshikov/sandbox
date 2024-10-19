@@ -1,15 +1,19 @@
 import contextlib
 from collections import defaultdict
-from typing import Optional, AsyncGenerator
+from functools import partial
+from typing import Optional, AsyncGenerator, List, Any, Callable
 from grpc_reflection.v1alpha import reflection
 import grpc
-from application.clients.grpc.account import account_pb2_grpc, account_pb2
+
+from application.clients.grpc.account import account_pb2_grpc
+from application.clients.grpc.account_proxy import account_proxy_pb2_grpc, account_proxy_pb2
 from application.clients.grpc.account_proxy.account_api import AccountApiProxy
 
 
 @contextlib.asynccontextmanager
 async def grpc_server(
         interceptors: Optional[list[grpc.aio.ServerInterceptor]] = None,
+        # apis: dict[str, Callable] = None,
         app=None
 ) -> AsyncGenerator[None, None]:
     interceptors = interceptors or list()
@@ -21,22 +25,24 @@ async def grpc_server(
             ("grpc.http2.max_ping_strikes", 3),
         ],
     )
+    # TODO переписать чтобы можно было инициализировать несколько сервисов
     channel = grpc.aio.insecure_channel("5.63.153.31:5055")
     app.state.account_grpc = account_pb2_grpc.AccountServiceStub(channel)
 
     account_service = AccountApiProxy(app.state.account_grpc)
-    account_pb2_grpc.add_AccountServiceServicer_to_server(account_service, server)
-    services_map: dict[str, dict[str, grpc.RpcMethodHandler]] = defaultdict(dict)
 
-    # reflection
-    service_names = list(services_map.keys())
-    service_names.append(reflection.SERVICE_NAME)
-    service_names.append(account_pb2.DESCRIPTOR.services_by_name["AccountService"].full_name)
+    for service_name, service_descriptor in account_proxy_pb2.DESCRIPTOR.services_by_name.items():
+        add_service_function = getattr(account_proxy_pb2_grpc, f'add_{service_name}Servicer_to_server')
+        add_service_function(account_service, server)
+
+    service_names = [reflection.SERVICE_NAME]
+    service_names.extend(
+        service.full_name for service in account_proxy_pb2.DESCRIPTOR.services_by_name.values()
+    )
     reflection.enable_server_reflection(service_names, server)
     server.add_insecure_port(f"[::]:50051")
     await server.start()
-    await channel.close()
 
     yield
-
+    await channel.close()
     await server.stop(None)

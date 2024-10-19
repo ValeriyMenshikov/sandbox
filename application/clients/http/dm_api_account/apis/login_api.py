@@ -9,11 +9,9 @@ Do not edit the class manually.
 
 from httpx import Response
 
+from application.clients.http.base import BaseClient
 
-from quick_api_tests.http_client.client_async import BaseClient
-
-
-from clients.http.dm_api_account.models.api_models import (
+from application.clients.http.dm_api_account.models.api_models import (
     UserEnvelope,
     LoginCredentials,
 )
@@ -21,10 +19,10 @@ from clients.http.dm_api_account.models.api_models import (
 
 class LoginApi(BaseClient):
     async def post_v1_account_login(
-        self,
-        login_credentials: LoginCredentials,  # noqa: E501
-        x_dm_bb_render_mode: str = "",
-        **kwargs,
+            self,
+            login_credentials: LoginCredentials,  # noqa: E501
+            x_dm_bb_render_mode: str = "",
+            **kwargs,
     ) -> UserEnvelope:
         """
                 Authenticate via credentials.
@@ -49,10 +47,10 @@ class LoginApi(BaseClient):
         return UserEnvelope.model_validate_json(response.text)
 
     async def post_v1_account_login_with_http_info(
-        self,
-        login_credentials: LoginCredentials,  # noqa: E501
-        x_dm_bb_render_mode: str = "",
-        **kwargs,
+            self,
+            login_credentials: LoginCredentials,  # noqa: E501
+            x_dm_bb_render_mode: str = "",
+            **kwargs,
     ) -> Response:
         """
                 Authenticate via credentials.
@@ -85,10 +83,10 @@ class LoginApi(BaseClient):
         return response
 
     async def delete_v1_account_login(
-        self,
-        x_dm_auth_token: str,
-        x_dm_bb_render_mode: str = "",
-        **kwargs,
+            self,
+            x_dm_auth_token: str,
+            x_dm_bb_render_mode: str = "",
+            **kwargs,
     ) -> Response:
         """
                 Logout as current user.
@@ -116,10 +114,10 @@ class LoginApi(BaseClient):
         return response
 
     async def delete_v1_account_login_with_http_info(
-        self,
-        x_dm_auth_token: str,
-        x_dm_bb_render_mode: str = "",
-        **kwargs,
+            self,
+            x_dm_auth_token: str,
+            x_dm_bb_render_mode: str = "",
+            **kwargs,
     ) -> Response:
         """
                 Logout as current user.
@@ -155,10 +153,10 @@ class LoginApi(BaseClient):
         return response
 
     async def delete_v1_account_login_all(
-        self,
-        x_dm_auth_token: str,
-        x_dm_bb_render_mode: str = "",
-        **kwargs,
+            self,
+            x_dm_auth_token: str,
+            x_dm_bb_render_mode: str = "",
+            **kwargs,
     ) -> Response:
         """
                 Logout from every device.
@@ -186,10 +184,10 @@ class LoginApi(BaseClient):
         return response
 
     async def delete_v1_account_login_all_with_http_info(
-        self,
-        x_dm_auth_token: str,
-        x_dm_bb_render_mode: str = "",
-        **kwargs,
+            self,
+            x_dm_auth_token: str,
+            x_dm_bb_render_mode: str = "",
+            **kwargs,
     ) -> Response:
         """
                 Logout from every device.

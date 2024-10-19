@@ -1,4 +1,5 @@
 syntax = "proto3";
+package account;
 
 option csharp_namespace = "DM.Web.Api.Grpc.Account";
 

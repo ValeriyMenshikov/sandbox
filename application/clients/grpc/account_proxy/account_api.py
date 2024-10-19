@@ -1,7 +1,8 @@
-from application.clients.grpc.account.account_pb2_grpc import AccountServiceServicer, AccountServiceStub
+from application.clients.grpc.account_proxy.account_proxy_pb2_grpc import AccountServiceProxyServicer
+from application.clients.grpc.account.account_pb2_grpc import AccountServiceStub
 
 
-class AccountApiProxy(AccountServiceServicer):
+class AccountApiProxy(AccountServiceProxyServicer):
     def __init__(self, account: AccountServiceStub):
         self.account = account
 
