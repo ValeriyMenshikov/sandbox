@@ -1,0 +1,17 @@
+version: '3.9'
+
+services:
+#  app:
+#    container_name: 'sandbox'
+#    build: .
+#    ports:
+#      - '8085:8085'
+#    depends_on:
+#      - cache
+
+  cache:
+    container_name: 'redis-sandbox'
+    image: redis:7.2.4-alpine
+    restart: always
+    ports:
+      - '6379:6379'
