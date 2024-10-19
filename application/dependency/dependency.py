@@ -1,8 +1,10 @@
+from fastapi import Depends
+
+from application.clients.http.base import Configuration
 from application.clients.http.dm_api_account.apis.account_api import AccountApi
 from application.clients.http.dm_api_account.apis.login_api import LoginApi
 from application.clients.http.mailhog.apis.mailhog_api import MailhogApi
-from application.clients.http.base import Configuration
-from fastapi import Depends
+from application.services.account.service import AccountService
 
 
 class Settings:
@@ -17,18 +19,24 @@ class Settings:
 
 
 async def get_http_account_api(
-        # settings=Depends(get_settings)
+    # settings=Depends(get_settings)
 ) -> AccountApi:
-    return AccountApi(Configuration(host=Settings.account_api))
+    return AccountApi(Configuration(host=Settings.account_api, disable_log=False))
 
 
 async def get_http_login_api(
-        # settings=Depends(get_settings)
+    # settings=Depends(get_settings)
 ) -> LoginApi:
-    return LoginApi(Configuration(host=Settings.login_api))
+    return LoginApi(Configuration(host=Settings.login_api, disable_log=False))
 
 
 async def get_mailhog_api(
-        # settings=Depends(get_settings)
+    # settings=Depends(get_settings)
 ) -> MailhogApi:
-    return MailhogApi(Configuration(host=Settings.mailhog_api))
+    return MailhogApi(Configuration(host=Settings.mailhog_api, disable_log=False))
+
+
+async def get_account_service(
+    account_api: AccountApi = Depends(get_http_account_api),  # noqa: B008
+) -> AccountService:
+    return AccountService(account_api=account_api)

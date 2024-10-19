@@ -4,6 +4,11 @@ run:
 	@echo "run server"
 	uvicorn application.main:main_app --host 0.0.0.0 --port 85 --reload
 
+format:
+	@echo "format"
+	poetry run ruff format
+	poetry run ruff check --fix .
+
 help:
 	@echo "Usage: make [command]"
 	@echo ""

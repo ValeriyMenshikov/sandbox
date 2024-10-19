@@ -1,11 +1,9 @@
-import contextlib
-from typing import AsyncGenerator
-from fastapi import FastAPI, Request
-from starlette.applications import Starlette
+import platform
+
+import structlog
+from fastapi import FastAPI
 
 from application import APP_MAP
-from application.clients.grpc.account import account_pb2
-from application.grpc import grpc_server
 
 # @contextlib.asynccontextmanager
 # async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
@@ -18,7 +16,16 @@ from application.grpc import grpc_server
 
 # app = FastAPI(lifespan=lifespan)
 
-from fastapi import FastAPI
+if platform.system() == "Linux":
+    processors = [
+        structlog.processors.JSONRenderer(ensure_ascii=False),
+    ]
+else:
+    processors = [
+        structlog.processors.JSONRenderer(indent=4, sort_keys=True, ensure_ascii=False),
+    ]
+
+structlog.configure(processors=processors)
 
 main_app = FastAPI()
 

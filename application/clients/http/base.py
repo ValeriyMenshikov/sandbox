@@ -1,19 +1,15 @@
+import uuid
+from json.decoder import JSONDecodeError
+
+import structlog
+from curlify2 import Curlify
 from httpx import (
     AsyncClient,
 )
-from json.decoder import JSONDecodeError
-import structlog
-import uuid
-from curlify2 import Curlify
 
 
 class Configuration:
-    def __init__(
-            self,
-            host: str,
-            headers: dict = None,
-            disable_log: bool = True
-    ):
+    def __init__(self, host: str, headers: dict = None, disable_log: bool = True):
         self.host = host
         self.headers = headers
         self.disable_log = disable_log
