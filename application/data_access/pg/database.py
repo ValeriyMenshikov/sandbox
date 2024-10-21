@@ -16,4 +16,5 @@ class Base(DeclarativeBase):
 
     @declared_attr
     def __tablename__(self) -> str:
+        """Generate table name from class name"""
         return self.__name__.lower()

@@ -1,4 +1,5 @@
 import json
+
 from redis import asyncio as Redis  # noqa: N812
 
 from application.clients.http.dm_api_account.models.api_models import UserDetailsEnvelope
@@ -28,3 +29,12 @@ class AccountCache:
             login = user_details.resource.login
             key = f"user:{login}:details"
             await redis.pipeline().set(key, user_details.json()).expire(key, 20).execute()
+
+    async def set_delete_account_token(self, token: str, delete_token: bytes) -> None:
+        async with self.redis as redis:
+            await redis.setex(f"delete_account:{token}", 360, delete_token)
+
+    async def get_delete_account_token(self, token: str) -> str | None:
+        async with self.redis as redis:
+            delete_token = await redis.get(f"delete_account:{token}")
+            return delete_token.decode("utf-8") if delete_token else None
