@@ -1,6 +1,6 @@
 from sqlalchemy import delete, select
 
-from application.clients.db.dm.orm_models import User
+from application.clients.db.pg.dm.orm_models import User
 from application.data_access.pg.base_repositoty import BaseRepository
 
 

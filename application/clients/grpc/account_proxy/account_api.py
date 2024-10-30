@@ -7,7 +7,7 @@ class AccountApiProxy(AccountServiceProxyServicer):
         self.account = account
 
     async def Login(self, request, context):  # noqa: N802
-        return await self.account.Login(request)
+        return await self.account.Login(request, metadata=context.invocation_metadata())
 
     async def Logout(self, request, context):  # noqa: N802
         return await self.account.Logout(request)

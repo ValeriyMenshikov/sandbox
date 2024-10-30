@@ -35,6 +35,8 @@ pydantic-settings = "^2.6.0"
 sqlalchemy = "^2.0.36"
 asyncpg = "^0.30.0"
 greenlet = "^3.1.1"
+aiochclient = "^2.6.0"
+orjson = "^3.10.10"
 [tool.ruff]
 line-length = 120
 extend-exclude = [

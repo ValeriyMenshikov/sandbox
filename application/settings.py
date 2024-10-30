@@ -17,6 +17,11 @@ class Settings(BaseSettings):
     CACHE_HOST: str = "localhost"
     CACHE_PORT: int = 6379
     CACHE_DB: int = 0
+    CH_HOST: str = "localhost"
+    CH_PORT: int = 8123
+    CH_DB: str = "sandbox"
+    CH_USER: str = ""
+    CH_PASSWORD: str = ""
     MAIL_FROM: str = '"DM.am" <info@dm.am>'
     SMTP_HOST: str = "5.63.153.31"
     SMTP_PORT: int = 1025
@@ -25,3 +30,7 @@ class Settings(BaseSettings):
     @property
     def db_url(self):
         return f"{self.DB_DRIVER}://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+
+    @property
+    def ch_url(self):
+        return f"http://{self.CH_HOST}:{self.CH_PORT}/"

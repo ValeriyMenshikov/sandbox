@@ -1,13 +1,14 @@
 version: '3.9'
 
 services:
-#  app:
-#    container_name: 'sandbox'
-#    build: .
-#    ports:
-#      - '8085:8085'
-#    depends_on:
-#      - cache
+  app:
+    container_name: 'sandbox'
+    build: .
+    ports:
+      - '8085:8085'
+    depends_on:
+      - cache
+      - clickhouse
 
   cache:
     container_name: 'redis-sandbox'
@@ -15,3 +16,18 @@ services:
     restart: always
     ports:
       - '6379:6379'
+
+  clickhouse:
+    image: yandex/clickhouse-server
+    container_name: 'clickhouse-sandbox'
+    ports:
+      - "8123:8123"
+      - "9002:9000"
+      - "9003:9001"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./config:/etc/clickhouse-server/config
+      - ./users:/etc/clickhouse-server/users
+
+volumes:
+  clickhouse_data:

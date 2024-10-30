@@ -7,8 +7,8 @@ from application.clients.http.dm_api_account import AccountApi
 from application.clients.http.dm_api_account.models.api_models import UserDetailsEnvelope, UserEnvelope
 from application.clients.smtp.client import MailClient
 from application.services.account.exceptions import AuthorizationError, EmailNotRegisteredError
+from application.services.account.repository.account_cache import AccountCache
 from application.services.account.repository.account_repository import AccountRepository
-from application.services.account.repository.cache_details import AccountCache
 
 
 @dataclasses.dataclass
