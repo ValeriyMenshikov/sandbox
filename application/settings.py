@@ -13,11 +13,12 @@ class Settings(BaseSettings):
     DB_PASSWORD: str = "admin"
     DB_DRIVER: str = "postgresql+asyncpg"
     DB_NAME: str = "dm3.5"
-    # CACHE_HOST: str = "redis"
-    CACHE_HOST: str = "localhost"
+    CACHE_HOST: str = "redis-sandbox"
+    # CACHE_HOST: str = "localhost"
     CACHE_PORT: int = 6379
     CACHE_DB: int = 0
-    CH_HOST: str = "localhost"
+    # CH_HOST: str = "localhost"
+    CH_HOST: str = "clickhouse-sandbox"
     CH_PORT: int = 8123
     CH_DB: str = "sandbox"
     CH_USER: str = ""
