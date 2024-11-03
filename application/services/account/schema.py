@@ -8,5 +8,9 @@ class UserSchema(BaseModel):
     skype: str = Field(None, description="User Skype", serialization_alias="Skype")
     info: str = Field(None, description="User info", serialization_alias="Info")
     profile_picture_url: str = Field(None, description="Profile picture URL", serialization_alias="ProfilePictureUrl")
-    medium_profile_picture_url: str = Field(None, description="Medium profile picture URL", serialization_alias="MediumProfilePictureUrl")
-    small_profile_picture_url: str = Field(None, description="Small profile picture URL", serialization_alias="SmallProfilePictureUrl")
+    medium_profile_picture_url: str = Field(
+        None, description="Medium profile picture URL", serialization_alias="MediumProfilePictureUrl"
+    )
+    small_profile_picture_url: str = Field(
+        None, description="Small profile picture URL", serialization_alias="SmallProfilePictureUrl"
+    )

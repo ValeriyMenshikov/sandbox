@@ -14,8 +14,8 @@ class RegisterService:
     register_analytics: RegisterAnalytics
 
     async def register(
-            self,
-            registration: Registration,
+        self,
+        registration: Registration,
     ) -> None:
         try:
             await self.account_api.post_v1_account(registration=registration)

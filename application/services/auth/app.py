@@ -17,7 +17,11 @@ router = APIRouter(
 )
 
 
-@router.post("/auth")
+@router.post(
+    path="/auth",
+    summary="Авторизация",
+    description="Метод для авторизации пользователя",
+)
 async def auth(
     login_credentials: LoginCredentials,
     login_api: LoginApi = Depends(get_http_login_api),  # noqa: B008
@@ -25,7 +29,11 @@ async def auth(
     return await login_api.post_v1_account_login(login_credentials=login_credentials)
 
 
-@router.delete("/logout", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    path="/logout",
+    summary="Выход",
+    description="Метод для выхода пользователя",
+)
 async def logout(
     token: Annotated[str | None, Header(description="Авторизационный токен")],
     login_api: LoginApi = Depends(get_http_login_api),  # noqa: B008
@@ -34,7 +42,11 @@ async def logout(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.delete("/logout/all", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    path="/logout/all",
+    summary="Выход",
+    description="Метод для выхода пользователя со всех устройств",
+)
 async def logout_all(
     token: Annotated[str | None, Header(description="Авторизационный токен")],
     login_api: LoginApi = Depends(get_http_login_api),  # noqa: B008

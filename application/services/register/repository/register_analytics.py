@@ -33,5 +33,5 @@ class RegisterAnalytics:
         await self.ch_client.execute(query=query)
 
     async def get_events(self) -> list[Record]:
-        query = f"SELECT * FROM {self.settings.CH_DB}.user_registration_events"
+        query = f"SELECT * FROM {self.settings.CH_DB}.user_registration_events"  # noqa: S608
         return await self.ch_client.fetch(query=query)
