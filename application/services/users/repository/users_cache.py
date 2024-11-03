@@ -2,39 +2,35 @@ import json
 
 from redis import asyncio as Redis  # noqa: N812
 
-from application.clients.http.dm_api_account.models.api_models import UserDetailsEnvelope
+from application.services.users.schema import UserSchema, UsersSchema
 
 
-class AccountCache:
+class UsersCache:
     def __init__(self, redis: Redis):
         self.redis = redis
 
-    async def get_login(self, token: str) -> str | None:
+    async def get_users(self) -> UsersSchema:
         async with self.redis as redis:
-            login = await redis.get(f"login:{token}")
-            return login.decode("utf-8") if login else None
+            tasks_json = await redis.lrange("tasks", 0, -1)
+            return UsersSchema(users=[UserSchema.model_validate(json.loads(task)) for task in tasks_json])
 
-    async def set_login(self, token: str, login: str) -> None:
+    async def set_users_by_search(self, search: str, limit: int, offset: int, users_cache: UsersSchema) -> None:
         async with self.redis as redis:
-            await redis.setex(f"login:{token}", 20, login)
+            key = f"search:{search}:limit:{limit}:offset:{offset}"
+            pipeline = redis.pipeline()
+            for user in users_cache.users:
+                pipeline.rpush(key, user.json())
+            pipeline.expire(key, 20)
+            await pipeline.execute()
 
-    async def get_account_info(self, login: str) -> UserDetailsEnvelope:
+    async def get_users_by_query_params(self, search: str, limit: int, offset: int) -> UsersSchema:
         async with self.redis as redis:
-            key = f"user:{login}:details"
-            details = await redis.get(key)
-            return UserDetailsEnvelope.model_validate(json.loads(details))
+            key = f"search:{search}:limit:{limit}:offset:{offset}"
+            tasks_json = await redis.lrange(key, 0, -1)
+            return UsersSchema(users=[UserSchema.model_validate(json.loads(task)) for task in tasks_json])
 
-    async def set_account_info(self, user_details: UserDetailsEnvelope) -> None:
+    async def set_users(self, users: UsersSchema) -> None:
+        users_json = [task.model_dump_json() for task in users.users]
         async with self.redis as redis:
-            login = user_details.resource.login
-            key = f"user:{login}:details"
-            await redis.pipeline().set(key, user_details.json()).expire(key, 20).execute()
-
-    async def set_delete_account_token(self, token: str, delete_token: bytes) -> None:
-        async with self.redis as redis:
-            await redis.setex(f"delete_account:{token}", 360, delete_token)
-
-    async def get_delete_account_token(self, token: str) -> str | None:
-        async with self.redis as redis:
-            delete_token = await redis.get(f"delete_account:{token}")
-            return delete_token.decode("utf-8") if delete_token else None
+            for task_json in users_json:
+                await redis.pipeline().lpush("tasks", task_json).expire("tasks", 20).execute()

@@ -17,6 +17,7 @@ from application.services.account.repository.account_repository import AccountRe
 from application.services.account.service import AccountService
 from application.services.register.repository.register_analytics import RegisterAnalytics
 from application.services.register.service import RegisterService
+from application.services.users.repository.users_cache import UsersCache
 from application.services.users.repository.users_repository import UsersRepository
 from application.services.users.service import UsersService
 from application.settings import Settings
@@ -87,9 +88,19 @@ async def get_register_service(
     )
 
 
+async def get_users_cache(
+    redis_session: Annotated[redis.Redis, Depends(get_redis_connection)],  # noqa: B008
+) -> UsersCache:
+    return UsersCache(
+        redis=redis_session,
+    )
+
+
 async def get_users_service(
     users_repository: UsersRepository = Depends(get_repository(UsersRepository)),  # noqa: B008
+    users_cache: UsersCache = Depends(get_users_cache),  # noqa: B008
 ) -> UsersService:
     return UsersService(
         users_repository=users_repository,
+        users_cache=users_cache,
     )

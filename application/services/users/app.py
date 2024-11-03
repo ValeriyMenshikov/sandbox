@@ -29,12 +29,12 @@ async def get_users(
     response_model_exclude_none=True,
 )
 async def search_users(
-    query: str,
+    search: str,
     limit: int = 10,
     offset: int = 0,
     users_service: UsersService = Depends(get_users_service),  # noqa: B008
 ) -> UsersSchema:
-    return await users_service.search_users(query=query, limit=limit, offset=offset)
+    return await users_service.search_users(search=search, limit=limit, offset=offset)
 
 
 app.include_router(router)
