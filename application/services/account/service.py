@@ -2,7 +2,6 @@ import dataclasses
 import uuid
 
 import httpx
-
 from application.clients.http.dm_api_account import AccountApi
 from application.clients.http.dm_api_account.models.api_models import UserDetailsEnvelope, UserEnvelope
 from application.clients.smtp.client import MailClient
@@ -10,6 +9,7 @@ from application.services.account.exceptions import AuthorizationError, EmailNot
 from application.services.account.repository.account_cache import AccountCache
 from application.services.account.repository.account_repository import AccountRepository
 from application.services.account.schema import UserSchema
+from application.utils import service_error_handler
 
 
 @dataclasses.dataclass
@@ -22,7 +22,9 @@ class AccountService:
     async def get_info(self, token) -> UserDetailsEnvelope:
         login = await self.account_cache.get_login(token)
         if not login:
-            response = await self.account_api.get_v1_account(x_dm_auth_token=token)
+            async with service_error_handler():
+                response = await self.account_api.get_v1_account_with_http_info(x_dm_auth_token=token)
+                response = UserDetailsEnvelope.model_validate_json(response.content)
             login = response.resource.login
             await self.account_cache.set_login(token=token, login=login)
             await self.account_cache.set_account_info(user_details=response)
@@ -33,42 +35,52 @@ class AccountService:
     async def update_info(self, token: str, user: UserSchema) -> UserDetailsEnvelope:
         response = await self._user_info_by_token(token=token)
         login = response.resource.login  # noqa: F841
-        await self.account_repository.update_user(user_login=login, user=user)
+        async with service_error_handler():
+            await self.account_repository.update_user(user_login=login, user=user)
         updated_user_data = await self.account_api.get_v1_account(x_dm_auth_token=token)
         return updated_user_data
 
     async def reset_password(self, reset_password_model) -> UserEnvelope:
-        return await self.account_api.post_v1_account_password(reset_password=reset_password_model)
+        async with service_error_handler():
+            response = await self.account_api.post_v1_account_password_with_http_info(reset_password=reset_password_model)
+            return UserEnvelope.model_validate_json(response.content)
 
     async def change_password(self, change_password_model) -> UserEnvelope:
-        return await self.account_api.put_v1_account_password(change_password=change_password_model)
+        change_password_model.token = str(change_password_model.token)
+        async with service_error_handler():
+            response = await self.account_api.put_v1_account_password_with_http_info(change_password=change_password_model)
+            return UserEnvelope.model_validate_json(response.content)
 
     async def change_email(self, change_mail_model) -> UserEnvelope:
-        return await self.account_api.put_v1_account_email(change_email=change_mail_model)
+        async with service_error_handler():
+            response = await self.account_api.put_v1_account_email_with_http_info(change_email=change_mail_model)
+            return UserEnvelope.model_validate_json(response.content)
 
     async def delete_account(self, token, email) -> None:
-        response = await self._user_info_by_token(token=token)
+        async with service_error_handler():
+            response = await self._user_info_by_token(token=token)
 
-        dataset = await self.account_repository.get_user(login=response.resource.login)
-        if dataset.Email != email:
-            raise EmailNotRegisteredError
+            dataset = await self.account_repository.get_user(login=response.resource.login)
+            if dataset.Email != email:
+                raise EmailNotRegisteredError
 
-        delete_token = uuid.uuid4()
-        await self.mail_client.send_email(
-            subject="Delete account",
-            text=f"Token for delete your account: {delete_token}, expires in 5 minutes",
-            to=email,
-        )
-        await self.account_cache.set_delete_account_token(token=token, delete_token=str(delete_token).encode("utf-8"))
+            delete_token = uuid.uuid4()
+            await self.mail_client.send_email(
+                subject="Delete account",
+                text=f"Token for delete your account: {delete_token}, expires in 5 minutes",
+                to=email,
+            )
+            await self.account_cache.set_delete_account_token(token=token, delete_token=str(delete_token).encode("utf-8"))
 
     async def delete_account_by_token(self, token, delete_token) -> str:
-        response = await self._user_info_by_token(token=token)
+        async with service_error_handler():
+            response = await self._user_info_by_token(token=token)
 
-        confirmation_token = await self.account_cache.get_delete_account_token(token=token)
-        if confirmation_token == delete_token:
-            await self.account_repository.delete_account(login=response.resource.login)
-            return "ok"
-        return "error"
+            confirmation_token = await self.account_cache.get_delete_account_token(token=token)
+            if confirmation_token == delete_token:
+                await self.account_repository.delete_account(login=response.resource.login)
+                return "ok"
+            return "error"
 
     async def _user_info_by_token(self, token: str) -> UserDetailsEnvelope:
         try:

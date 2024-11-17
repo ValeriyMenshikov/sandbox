@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, FastAPI
 from application.dependency.dependency import get_users_service
 from application.services.users.schema import UsersSchema
 from application.services.users.service import UsersService
+from application.utils import service_error_handler
 
 app = FastAPI(title="Users API")
 router = APIRouter(prefix="/users", tags=["User"])
@@ -19,7 +20,8 @@ async def get_users(
     offset: int = 0,
     users_service: UsersService = Depends(get_users_service),  # noqa: B008
 ) -> UsersSchema:
-    return await users_service.get_users(limit=limit, offset=offset)
+    async with service_error_handler():
+        return await users_service.get_users(limit=limit, offset=offset)
 
 
 @router.get(
@@ -34,7 +36,8 @@ async def search_users(
     offset: int = 0,
     users_service: UsersService = Depends(get_users_service),  # noqa: B008
 ) -> UsersSchema:
-    return await users_service.search_users(search=search, limit=limit, offset=offset)
+    async with service_error_handler():
+        return await users_service.search_users(search=search, limit=limit, offset=offset)
 
 
 app.include_router(router)

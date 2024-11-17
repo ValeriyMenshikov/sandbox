@@ -70,7 +70,7 @@ class InfoBbText(BaseModel):
 
 class LoginCredentials(BaseModel):
     model_config = ConfigDict(
-        # extra="forbid",
+        extra="forbid",
     )
     login: Optional[str] = None
     password: Optional[str] = None

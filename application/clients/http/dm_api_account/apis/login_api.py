@@ -141,6 +141,7 @@ class LoginApi(BaseClient):
 
         response = await self.delete(
             path="/v1/account/login",
+            headers=headers,
             **kwargs,
         )
         return response
@@ -210,6 +211,7 @@ class LoginApi(BaseClient):
 
         response = await self.delete(
             path="/v1/account/login/all",
+            headers=headers,
             **kwargs,
         )
         return response

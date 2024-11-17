@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Query, Response, status
+from httpx import HTTPStatusError
 
 from application.clients.http.dm_api_account.models.api_models import (
     ChangeEmail,
@@ -71,7 +72,13 @@ async def change_password(
     change_password_model: ChangePassword,
     account_service: AccountService = Depends(get_account_service),  # noqa: B008
 ) -> UserEnvelope:
-    return await account_service.change_password(change_password_model=change_password_model)
+    try:
+        response = await account_service.change_password(change_password_model=change_password_model)
+    except HTTPStatusError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=e.response.json()
+        )
 
 
 @router.put(

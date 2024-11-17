@@ -8,6 +8,7 @@ from application.clients.http.dm_api_account.models.api_models import UserEnvelo
 from application.dependency.dependency import get_http_account_api, get_register_service
 from application.services.register.exceptions import RegistrationError
 from application.services.register.service import RegisterService
+from application.utils import service_error_handler
 
 app = FastAPI(title="Register API")
 router = APIRouter(prefix="/user", tags=["Account"])
@@ -25,10 +26,8 @@ async def register(
     registration: Registration,
     register_service: RegisterService = Depends(get_register_service),  # noqa: B008
 ) -> None:
-    try:
+    async with service_error_handler():
         await register_service.register(registration=registration)
-    except RegistrationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message) from e
 
 
 @router.put(
@@ -40,7 +39,9 @@ async def activate(
     token: str,
     account_api: AccountApi = Depends(get_http_account_api),  # noqa: B008
 ) -> UserEnvelope:
-    return await account_api.put_v1_account_token(token=token)
+    async with service_error_handler():
+        response = await account_api.put_v1_account_token_with_http_info(token=token)
+        return UserEnvelope.model_validate_json(response.content)
 
 
 app.include_router(router)
