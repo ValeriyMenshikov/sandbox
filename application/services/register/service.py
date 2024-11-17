@@ -18,7 +18,7 @@ class RegisterService:
         registration: Registration,
     ) -> None:
         try:
-            await self.account_api.post_v1_account(registration=registration)
+            await self.account_api.post_v1_account_with_http_info(registration=registration)
         except httpx.HTTPStatusError as e:
             if e.response.status_code:
                 await self.register_analytics.set_event(

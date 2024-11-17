@@ -1,3 +1,5 @@
+import json
+
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, status
 
 from application.clients.http.dm_api_account.apis.account_api import (
@@ -26,8 +28,13 @@ async def register(
     registration: Registration,
     register_service: RegisterService = Depends(get_register_service),  # noqa: B008
 ) -> None:
-    async with service_error_handler():
+    try:
         await register_service.register(registration=registration)
+    except RegistrationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=json.loads(e.message),
+        )
 
 
 @router.put(
