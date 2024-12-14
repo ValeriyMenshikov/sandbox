@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Query, Response, status
+from starlette.responses import JSONResponse
 from httpx import HTTPStatusError
 
 from application.clients.http.dm_api_account.models.api_models import (
@@ -107,14 +108,19 @@ async def delete_account(
     token: Annotated[str | None, Header(description="Авторизационный токен")],
     email: Annotated[str | None, Query(description="email учетной записи")],
     account_service: AccountService = Depends(get_account_service),  # noqa: B008
-) -> Response:
+) -> JSONResponse:
     try:
         await account_service.delete_account(token=token, email=email)
     except AuthorizationError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authorization failed") from e
     except EmailNotRegisteredError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email is not registered") from e
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    return JSONResponse(
+            status_code=status.HTTP_204_NO_CONTENT,
+            content={
+                "message": "User has been started deletion account and expects confirmation by e-mail"
+            }
+        )
 
 
 @router.delete(
@@ -133,7 +139,12 @@ async def confirmation_delete_account(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authorization failed") from e
 
     if response == "ok":
-        return Response(status_code=status.HTTP_204_NO_CONTENT)
+        return JSONResponse(
+            status_code=status.HTTP_204_NO_CONTENT,
+            content={
+                "message": "User has been deleted"
+            }
+        )
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad token or token expired")
 
 

@@ -57,20 +57,19 @@ class AccountService:
             return UserEnvelope.model_validate_json(response.content)
 
     async def delete_account(self, token, email) -> None:
-        async with service_error_handler():
-            response = await self._user_info_by_token(token=token)
+        response = await self._user_info_by_token(token=token)
 
-            dataset = await self.account_repository.get_user(login=response.resource.login)
-            if dataset.Email != email:
-                raise EmailNotRegisteredError
+        dataset = await self.account_repository.get_user(login=response.resource.login)
+        if dataset.Email != email:
+            raise EmailNotRegisteredError
 
-            delete_token = uuid.uuid4()
-            await self.mail_client.send_email(
-                subject="Delete account",
-                text=f"Token for delete your account: {delete_token}, expires in 5 minutes",
-                to=email,
-            )
-            await self.account_cache.set_delete_account_token(token=token, delete_token=str(delete_token).encode("utf-8"))
+        delete_token = uuid.uuid4()
+        await self.mail_client.send_email(
+            subject="Delete account",
+            text=f"Token for delete your account: {delete_token}, expires in 5 minutes",
+            to=email,
+        )
+        await self.account_cache.set_delete_account_token(token=token, delete_token=str(delete_token).encode("utf-8"))
 
     async def delete_account_by_token(self, token, delete_token) -> str:
         async with service_error_handler():
