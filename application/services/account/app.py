@@ -74,6 +74,7 @@ async def change_password(
 ) -> UserEnvelope:
     try:
         response = await account_service.change_password(change_password_model=change_password_model)
+        return response
     except HTTPStatusError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

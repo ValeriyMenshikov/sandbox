@@ -29,7 +29,7 @@ async def auth(
 ) -> UserEnvelope:
     async with service_error_handler():
         response = await login_api.post_v1_account_login_with_http_info(login_credentials=login_credentials)
-    return UserEnvelope.model_validate_json(response.json())
+    return UserEnvelope.model_validate_json(response.content)
 
 
 @router.delete(
