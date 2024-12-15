@@ -201,5 +201,5 @@ class UserEnvelope(BaseModel):
     model_config = ConfigDict(
         # extra="forbid",
     )
-    resource: Optional[User] = None
-    metadata: Optional[Any] = Field(None, description="Additional metadata")
+    resource: User = None
+    metadata: dict = Field(None, description="Additional metadata")
