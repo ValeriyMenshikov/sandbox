@@ -1,7 +1,7 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, FastAPI, Header, Response, status, HTTPException
-from httpx import HTTPStatusError
+from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Response, status
+
 from application.clients.http.dm_api_account.apis.login_api import LoginApi
 from application.clients.http.dm_api_account.models.api_models import (
     LoginCredentials,
@@ -31,8 +31,9 @@ async def auth(
         response = await login_api.post_v1_account_login_with_http_info(login_credentials=login_credentials)
     if response.status_code == 200:
         response_data = UserEnvelope.model_validate_json(response.content)
-        response_data.metadata = {"token": response.headers.get('x-dm-auth-token')}
+        response_data.metadata = {"token": response.headers.get("x-dm-auth-token")}
         return response_data
+    raise HTTPException(status_code=response.status_code, detail=response.text)
 
 
 @router.delete(
@@ -41,7 +42,7 @@ async def auth(
     description="Метод для выхода пользователя",
 )
 async def logout(
-    token: Annotated[str | None, Header(description="Авторизационный токен")],
+    token: Annotated[str, Header(description="Авторизационный токен")],
     login_api: LoginApi = Depends(get_http_login_api),  # noqa: B008
 ) -> Response:
     async with service_error_handler(status_code=status.HTTP_401_UNAUTHORIZED):
@@ -55,7 +56,7 @@ async def logout(
     description="Метод для выхода пользователя со всех устройств",
 )
 async def logout_all(
-    token: Annotated[str | None, Header(description="Авторизационный токен")],
+    token: Annotated[str, Header(description="Авторизационный токен")],
     login_api: LoginApi = Depends(get_http_login_api),  # noqa: B008
 ) -> Response:
     async with service_error_handler(status_code=status.HTTP_401_UNAUTHORIZED):

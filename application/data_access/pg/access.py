@@ -1,4 +1,5 @@
 from typing import (
+    AsyncGenerator,
     Callable,
     Type,
 )
@@ -18,7 +19,7 @@ engine = create_async_engine(url=Settings().db_url, future=True, echo=True, pool
 AsyncSessionFactory = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession, autoflush=False)
 
 
-async def get_connection() -> AsyncSession:
+async def get_connection() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionFactory() as session:
         yield session
 

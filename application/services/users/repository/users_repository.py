@@ -19,7 +19,7 @@ class UsersRepository(BaseRepository):
             .limit(limit)
             .offset(offset)
         )
-        users: list[User] = (await self.execute(query)).fetchall()
+        users = (await self.execute(query)).fetchall()
         users_list = []
         for user in users:
             serialized_user = UserSchema(
@@ -35,8 +35,8 @@ class UsersRepository(BaseRepository):
         return UsersSchema(users=users_list)
 
     async def search_users(self, search: str, limit: int, offset: int) -> UsersSchema:
-        search = (
-            select(
+        query = (
+            select(  # type: ignore[assignment]
                 User.Login,
                 User.Name,
                 User.Location,
@@ -48,7 +48,8 @@ class UsersRepository(BaseRepository):
             .limit(limit)
             .offset(offset)
         )
-        users: list[User] = (await self.execute(search)).fetchall()
+
+        users = (await self.execute(query)).fetchall()
         users_list = []
         for user in users:
             serialized_user = UserSchema(

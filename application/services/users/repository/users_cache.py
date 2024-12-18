@@ -1,6 +1,6 @@
 import json
 
-from redis import asyncio as Redis  # noqa: N812
+from redis.asyncio.client import Redis
 
 from application.services.users.schema import UserSchema, UsersSchema
 

@@ -2,6 +2,7 @@ import contextlib
 from typing import AsyncGenerator, Optional
 
 import grpc
+from fastapi import FastAPI
 from grpc_reflection.v1alpha import reflection
 
 from application.clients.grpc.account import account_pb2_grpc
@@ -14,9 +15,9 @@ from application.clients.grpc.account_proxy.account_api import AccountApiProxy
 
 @contextlib.asynccontextmanager
 async def grpc_server(
+    app: FastAPI,
     interceptors: Optional[list[grpc.aio.ServerInterceptor]] = None,
     # apis: dict[str, Callable] = None,
-    app=None,
 ) -> AsyncGenerator[None, None]:
     interceptors = interceptors or list()
 

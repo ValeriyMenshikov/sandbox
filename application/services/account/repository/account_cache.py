@@ -1,6 +1,6 @@
 import json
 
-from redis import asyncio as Redis  # noqa: N812
+from redis.asyncio.client import Redis
 
 from application.clients.http.dm_api_account.models.api_models import UserDetailsEnvelope
 
@@ -22,13 +22,18 @@ class AccountCache:
         async with self.redis as redis:
             key = f"user:{login}:details"
             details = await redis.get(key)
-            return UserDetailsEnvelope.model_validate(json.loads(details))
+            if isinstance(details, str):
+                return UserDetailsEnvelope.model_validate(json.loads(details))
+            raise TypeError("Account info not found")
 
     async def set_account_info(self, user_details: UserDetailsEnvelope) -> None:
         async with self.redis as redis:
-            login = user_details.resource.login
-            key = f"user:{login}:details"
-            await redis.pipeline().set(key, user_details.json()).expire(key, 20).execute()
+            if user_details is not None and user_details.resource is not None:
+                login = user_details.resource.login
+                key = f"user:{login}:details"
+                await redis.pipeline().set(key, user_details.json()).expire(key, 20).execute()
+                return
+            raise TypeError("Account info not found")
 
     async def set_delete_account_token(self, token: str, delete_token: bytes) -> None:
         async with self.redis as redis:

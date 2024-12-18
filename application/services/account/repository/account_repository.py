@@ -6,11 +6,13 @@ from application.services.account.schema import UserSchema
 
 
 class AccountRepository(BaseRepository):
-    async def get_user(self, login) -> User:
-        user: User = (await self.execute(select(User).where(User.Login == login))).scalar_one_or_none()
+    async def get_user(self, login: str) -> User:
+        user = (await self.execute(select(User).where(User.Login == login))).scalar_one_or_none()
+        if user is None:
+            raise ValueError("User not found")
         return user
 
-    async def delete_account(self, login) -> None:
+    async def delete_account(self, login: str) -> None:
         await self.execute(delete(User).where(User.Login == login))
 
     async def update_user(self, user_login: str, user: UserSchema) -> None:

@@ -1,8 +1,8 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Query, Response, status
-from starlette.responses import JSONResponse
 from httpx import HTTPStatusError
+from starlette.responses import JSONResponse
 
 from application.clients.http.dm_api_account.models.api_models import (
     ChangeEmail,
@@ -26,7 +26,7 @@ router = APIRouter(prefix="/account", tags=["Account"])
     description="Метод для получения информации о пользователе, метод кэширует данные на 20 секунд",
 )
 async def get_info(
-    token: Annotated[str | None, Header(description="Авторизационный токен")],
+    token: Annotated[str, Header(description="Авторизационный токен")],
     account_service: AccountService = Depends(get_account_service),  # noqa: B008
 ) -> UserDetailsEnvelope:
     return await account_service.get_info(token=token)
@@ -38,7 +38,7 @@ async def get_info(
     description="Изменить информацию о пользователе",
 )
 async def update_info(
-    token: Annotated[str | None, Header(description="Авторизационный токен")],
+    token: Annotated[str, Header(description="Авторизационный токен")],
     user: UserSchema,
     account_service: AccountService = Depends(get_account_service),  # noqa: B008
 ) -> UserDetailsEnvelope:
@@ -77,10 +77,7 @@ async def change_password(
         response = await account_service.change_password(change_password_model=change_password_model)
         return response
     except HTTPStatusError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=e.response.json()
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=e.response.json()) from e
 
 
 @router.put(
@@ -105,8 +102,8 @@ async def change_email(
     """,  # noqa: W291
 )
 async def delete_account(
-    token: Annotated[str | None, Header(description="Авторизационный токен")],
-    email: Annotated[str | None, Query(description="email учетной записи")],
+    token: Annotated[str, Header(description="Авторизационный токен")],
+    email: Annotated[str, Query(description="email учетной записи")],
     account_service: AccountService = Depends(get_account_service),  # noqa: B008
 ) -> JSONResponse:
     try:
@@ -116,11 +113,9 @@ async def delete_account(
     except EmailNotRegisteredError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email is not registered") from e
     return JSONResponse(
-            status_code=status.HTTP_204_NO_CONTENT,
-            content={
-                "message": "User has been started deletion account and expects confirmation by e-mail"
-            }
-        )
+        status_code=status.HTTP_204_NO_CONTENT,
+        content={"message": "User has been started deletion account and expects confirmation by e-mail"},
+    )
 
 
 @router.delete(
@@ -129,8 +124,8 @@ async def delete_account(
     description="Позволяет подтвердить и окончательно удалить учетную запись без возможности восстановления.",
 )
 async def confirmation_delete_account(
-    token: Annotated[str | None, Header(description="Авторизационный токен")],
-    delete_token: Annotated[str | None, Query(description="Токен для подтверждения удаления учетной записи")],
+    token: Annotated[str, Header(description="Авторизационный токен")],
+    delete_token: Annotated[str, Query(description="Токен для подтверждения удаления учетной записи")],
     account_service: AccountService = Depends(get_account_service),  # noqa: B008
 ) -> Response:
     try:
@@ -139,12 +134,7 @@ async def confirmation_delete_account(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authorization failed") from e
 
     if response == "ok":
-        return JSONResponse(
-            status_code=status.HTTP_204_NO_CONTENT,
-            content={
-                "message": "User has been deleted"
-            }
-        )
+        return JSONResponse(status_code=status.HTTP_204_NO_CONTENT, content={"message": "User has been deleted"})
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad token or token expired")
 
 

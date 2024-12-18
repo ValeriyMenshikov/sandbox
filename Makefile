@@ -9,6 +9,10 @@ format:
 	poetry run ruff format
 	poetry run ruff check --fix .
 
+lint:
+	@echo "lint"
+	poetry run mypy .
+
 help:
 	@echo "Usage: make [command]"
 	@echo ""

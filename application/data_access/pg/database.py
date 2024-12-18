@@ -10,11 +10,11 @@ from sqlalchemy.orm import (
 
 class Base(DeclarativeBase):
     id: Any
-    __name__: str
+    __name__: str  # type: ignore[misc]
 
     __allow_unmapped__ = True
 
-    @declared_attr
+    @declared_attr  # type: ignore[arg-type]
     def __tablename__(self) -> str:
         """Generate table name from class name."""
         return self.__name__.lower()

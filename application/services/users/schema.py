@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 class UserSchema(BaseModel):
     name: Optional[str] = Field(None, description="User real name")
-    login: str = Field(None, description="User real name")
+    login: str | None = Field(None, description="User real name")
     location: Optional[str] = Field(None, description="User real location")
     icq: Optional[str] = Field(None, description="User ICQ")
     skype: Optional[str] = Field(None, description="User Skype")
@@ -13,4 +13,4 @@ class UserSchema(BaseModel):
 
 
 class UsersSchema(BaseModel):
-    users: list[UserSchema] = Field(None, description="List of users")
+    users: list[UserSchema] = Field(description="List of users")

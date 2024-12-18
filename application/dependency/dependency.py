@@ -1,8 +1,8 @@
 from typing import Annotated
 
-import redis
 from aiochclient import ChClient
 from fastapi import Depends
+from redis.asyncio.client import Redis
 
 from application.clients.http.base import Configuration
 from application.clients.http.dm_api_account.apis.account_api import AccountApi
@@ -23,7 +23,7 @@ from application.services.users.service import UsersService
 from application.settings import Settings
 
 
-def get_settings():
+def get_settings() -> Settings:
     return Settings()
 
 
@@ -46,7 +46,7 @@ async def get_mailhog_api(
 
 
 async def account_cache_repository(
-    redis_session: Annotated[redis.Redis, Depends(get_redis_connection)],  # noqa: B008
+    redis_session: Annotated[Redis, Depends(get_redis_connection)],  # noqa: B008
 ) -> AccountCache:
     return AccountCache(redis=redis_session)
 
@@ -74,7 +74,7 @@ async def get_account_service(
 async def register_analytics_repository(
     ch_connection: Annotated[ChClient, Depends(get_ch_connection)],  # noqa: B008
     settings: Settings = Depends(get_settings),  # noqa: B008
-):
+) -> RegisterAnalytics:
     return RegisterAnalytics(ch_client=ch_connection, settings=settings)
 
 
@@ -89,7 +89,7 @@ async def get_register_service(
 
 
 async def get_users_cache(
-    redis_session: Annotated[redis.Redis, Depends(get_redis_connection)],  # noqa: B008
+    redis_session: Annotated[Redis, Depends(get_redis_connection)],  # noqa: B008
 ) -> UsersCache:
     return UsersCache(
         redis=redis_session,
