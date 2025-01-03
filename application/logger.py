@@ -18,7 +18,7 @@ class LogLevelEnum(str, Enum):
 
 
 class LoggerSettings(BaseSettings):
-    log_json: bool = True
+    log_json: bool = False
     log_level: LogLevelEnum = LogLevelEnum.DEBUG
 
 

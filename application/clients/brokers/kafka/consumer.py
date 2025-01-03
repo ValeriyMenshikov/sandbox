@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from aiokafka import AIOKafkaConsumer
 
 from application.clients.http.dm_api_account.models.api_models import Registration
+from application.logger import LOGGER
 from application.services.register.service import RegisterService
 
 
@@ -30,7 +31,7 @@ class KafkaRegisterConsumer(BaseConsumer):
                 try:
                     await self.register_service.register(registration=Registration.model_validate(message.value))
                 except Exception as e:
-                    print(e)
+                    LOGGER.error(e)
         finally:
             await self.close_connection()
 
@@ -39,18 +40,17 @@ class KafkaRetryRegisterConsumer(BaseConsumer):
     consumer: AIOKafkaConsumer
     register_service: RegisterService
 
-    async def registration_consume(self) -> None:
+    async def retry_registration_consume(self) -> None:
         await self.open_connection()
         try:
             async for message in self.consumer:
-                print("error", message.value)
                 try:
                     if message.value["error_type"] != "validation":
-                        print("error", message.value)
+                        LOGGER.warning(f"Error while registration: {message.value['error_message']}")
                         await self.register_service.register(
                             registration=Registration.model_validate(message.value["input_data"])
                         )
                 except Exception as e:
-                    print(e)
+                    LOGGER.error(e)
         finally:
             await self.close_connection()

@@ -9,6 +9,9 @@ services:
     depends_on:
       - cache
       - clickhouse
+      - zookeeper
+      - kafka
+      - akhq
 
   cache:
     container_name: 'redis-sandbox'

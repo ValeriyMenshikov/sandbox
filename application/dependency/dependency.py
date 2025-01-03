@@ -2,7 +2,7 @@ import json
 from typing import Annotated
 
 from aiochclient import ChClient
-from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
+from aiokafka import AIOKafkaConsumer
 from fastapi import Depends
 from redis.asyncio.client import Redis
 
@@ -83,11 +83,7 @@ async def register_analytics_repository(
 
 
 async def get_kafka_producer(settings: Annotated[Settings, Depends(get_settings)]) -> KafkaProducer:
-    return KafkaProducer(
-        producer=AIOKafkaProducer(
-            bootstrap_servers=[settings.KAFKA_URL],
-        ),
-    )
+    return KafkaProducer(settings=settings)
 
 
 async def get_register_service(
@@ -118,9 +114,10 @@ async def get_users_service(
     )
 
 
-async def get_kafka_register_consumer(kafka_producer: KafkaProducer) -> KafkaRegisterConsumer:
+async def get_kafka_register_consumer() -> KafkaRegisterConsumer:
     settings = get_settings()
     ch = await get_ch_client()
+    kafka_producer = await get_kafka_producer(settings=settings)
     account_api = await get_http_account_api(settings=settings)
     register_analitycs = await register_analytics_repository(ch_connection=ch, settings=settings)
     register_service = await get_register_service(
@@ -136,9 +133,10 @@ async def get_kafka_register_consumer(kafka_producer: KafkaProducer) -> KafkaReg
     )
 
 
-async def get_kafka_retry_register_consumer(kafka_producer: KafkaProducer) -> KafkaRetryRegisterConsumer:
+async def get_kafka_retry_register_consumer() -> KafkaRetryRegisterConsumer:
     settings = get_settings()
     ch = await get_ch_client()
+    kafka_producer = await get_kafka_producer(settings=settings)
     account_api = await get_http_account_api(settings=settings)
     register_analitycs = await register_analytics_repository(ch_connection=ch, settings=settings)
     register_service = await get_register_service(

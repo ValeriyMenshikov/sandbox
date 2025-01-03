@@ -6,6 +6,7 @@ import httpx
 from application.clients.brokers.kafka.producer import KafkaProducer
 from application.clients.http.dm_api_account import AccountApi
 from application.clients.http.dm_api_account.models.api_models import Registration
+from application.logger import LOGGER
 from application.services.register.exceptions import RegistrationError
 from application.services.register.repository.register_analytics import RegisterAnalytics
 
@@ -24,6 +25,7 @@ class RegisterService:
             await self.account_api.post_v1_account_with_http_info(registration=registration)
         except httpx.HTTPStatusError as e:
             if e.response.status_code:
+                LOGGER.warning(f"Error while registration: {e.response.text}")
                 message = {
                     "input_data": json.loads(registration.model_dump_json()),
                     "error_message": e.response.json(),
