@@ -38,6 +38,8 @@ aiochclient = "^2.6.0"
 orjson = "^3.10.10"
 
 ### lint & format config
+aiokafka = "^0.12.0"
+loguru = "^0.7.3"
 [tool.ruff]
 line-length = 120
 extend-exclude = [

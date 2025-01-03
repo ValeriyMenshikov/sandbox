@@ -17,7 +17,6 @@ from application.clients.grpc.account_proxy.account_api import AccountApiProxy
 async def grpc_server(
     app: FastAPI,
     interceptors: Optional[list[grpc.aio.ServerInterceptor]] = None,
-    # apis: dict[str, Callable] = None,
 ) -> AsyncGenerator[None, None]:
     interceptors = interceptors or list()
 

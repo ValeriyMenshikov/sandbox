@@ -30,7 +30,10 @@ class RegisterAnalytics:
             '{event_time_str}'
         );
         """
-        await self.ch_client.execute(query=query)
+        try:
+            await self.ch_client.execute(query=query)
+        except Exception as e:
+            print(e)
 
     async def get_events(self) -> list[Record]:
         query = f"SELECT * FROM {self.settings.CH_DB}.user_registration_events"  # noqa: S608

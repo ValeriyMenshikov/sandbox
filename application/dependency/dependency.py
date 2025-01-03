@@ -1,15 +1,19 @@
+import json
 from typing import Annotated
 
 from aiochclient import ChClient
+from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from fastapi import Depends
 from redis.asyncio.client import Redis
 
+from application.clients.brokers.kafka.consumer import KafkaRegisterConsumer, KafkaRetryRegisterConsumer
+from application.clients.brokers.kafka.producer import KafkaProducer
 from application.clients.http.base import Configuration
 from application.clients.http.dm_api_account.apis.account_api import AccountApi
 from application.clients.http.dm_api_account.apis.login_api import LoginApi
 from application.clients.http.mailhog.apis.mailhog_api import MailhogApi
 from application.clients.smtp.client import MailClient
-from application.data_access.ch.access import get_ch_connection
+from application.data_access.ch.access import get_ch_client, get_ch_connection
 from application.data_access.pg.access import get_repository
 from application.data_access.redis.access import get_redis_connection
 from application.services.account.repository.account_cache import AccountCache
@@ -78,13 +82,21 @@ async def register_analytics_repository(
     return RegisterAnalytics(ch_client=ch_connection, settings=settings)
 
 
+async def get_kafka_producer(settings: Annotated[Settings, Depends(get_settings)]) -> KafkaProducer:
+    return KafkaProducer(
+        producer=AIOKafkaProducer(
+            bootstrap_servers=[settings.KAFKA_URL],
+        ),
+    )
+
+
 async def get_register_service(
+    kafka_producer: Annotated[KafkaProducer, Depends(get_kafka_producer)],
     account_api: AccountApi = Depends(get_http_account_api),  # noqa: B008
     register_analytics: RegisterAnalytics = Depends(register_analytics_repository),  # noqa: B008
 ) -> RegisterService:
     return RegisterService(
-        account_api=account_api,
-        register_analytics=register_analytics,
+        account_api=account_api, register_analytics=register_analytics, kafka_producer=kafka_producer
     )
 
 
@@ -103,4 +115,40 @@ async def get_users_service(
     return UsersService(
         users_repository=users_repository,
         users_cache=users_cache,
+    )
+
+
+async def get_kafka_register_consumer(kafka_producer: KafkaProducer) -> KafkaRegisterConsumer:
+    settings = get_settings()
+    ch = await get_ch_client()
+    account_api = await get_http_account_api(settings=settings)
+    register_analitycs = await register_analytics_repository(ch_connection=ch, settings=settings)
+    register_service = await get_register_service(
+        account_api=account_api, register_analytics=register_analitycs, kafka_producer=kafka_producer
+    )
+    return KafkaRegisterConsumer(
+        register_service=register_service,
+        consumer=AIOKafkaConsumer(
+            settings.KAFKA_REGISTER_TOPIC,
+            bootstrap_servers=settings.KAFKA_URL,
+            value_deserializer=lambda message: json.loads(message.decode("utf-8")),
+        ),
+    )
+
+
+async def get_kafka_retry_register_consumer(kafka_producer: KafkaProducer) -> KafkaRetryRegisterConsumer:
+    settings = get_settings()
+    ch = await get_ch_client()
+    account_api = await get_http_account_api(settings=settings)
+    register_analitycs = await register_analytics_repository(ch_connection=ch, settings=settings)
+    register_service = await get_register_service(
+        account_api=account_api, register_analytics=register_analitycs, kafka_producer=kafka_producer
+    )
+    return KafkaRetryRegisterConsumer(
+        register_service=register_service,
+        consumer=AIOKafkaConsumer(
+            settings.KAFKA_REGISTER_TOPIC_ERROR,
+            bootstrap_servers=settings.KAFKA_URL,
+            value_deserializer=lambda message: json.loads(message.decode("utf-8")),
+        ),
     )
