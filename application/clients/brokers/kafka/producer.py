@@ -25,8 +25,8 @@ class KafkaProducer:
         self.producer: AIOKafkaProducer = AIOKafkaProducer(
             bootstrap_servers=[self.settings.KAFKA_URL],
         )
-        await self.connect()
         try:
+            await self.connect()
             await self.producer.send(topic, json.dumps(message).encode())
         except Exception as e:
             LOGGER.error(e)

@@ -25,8 +25,8 @@ class KafkaRegisterConsumer(BaseConsumer):
     register_service: RegisterService
 
     async def registration_consume(self) -> None:
-        await self.open_connection()
         try:
+            await self.open_connection()
             async for message in self.consumer:
                 try:
                     await self.register_service.register(registration=Registration.model_validate(message.value))
@@ -41,8 +41,8 @@ class KafkaRetryRegisterConsumer(BaseConsumer):
     register_service: RegisterService
 
     async def retry_registration_consume(self) -> None:
-        await self.open_connection()
         try:
+            await self.open_connection()
             async for message in self.consumer:
                 try:
                     if message.value["error_type"] != "validation":
