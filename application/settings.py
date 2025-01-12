@@ -28,7 +28,8 @@ class Settings(BaseSettings):
     SMTP_HOST: str = "5.63.153.31"
     SMTP_PORT: int = 1025
     SMTP_PASSWORD: str = ""
-    KAFKA_URL: str = "kafka:19092"
+    # KAFKA_URL: str = "kafka:19092"
+    KAFKA_URL: str = "5.63.153.31:9092"
     # KAFKA_URL: str = "localhost:9092"
     KAFKA_REGISTER_TOPIC: str = "register-events"
     KAFKA_REGISTER_TOPIC_ERROR: str = "register-events-errors"
