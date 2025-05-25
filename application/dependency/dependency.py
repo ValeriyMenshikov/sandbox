@@ -19,6 +19,8 @@ from application.data_access.redis.access import get_redis_connection
 from application.services.account.repository.account_cache import AccountCache
 from application.services.account.repository.account_repository import AccountRepository
 from application.services.account.service import AccountService
+from application.services.admin.repository.admin_repository import AdminRepository
+from application.services.admin.service import AdminService
 from application.services.register.repository.register_analytics import RegisterAnalytics
 from application.services.register.service import RegisterService
 from application.services.users.repository.users_cache import UsersCache
@@ -111,6 +113,14 @@ async def get_users_service(
     return UsersService(
         users_repository=users_repository,
         users_cache=users_cache,
+    )
+
+
+async def get_admin_service(
+    admin_repository: AdminRepository = Depends(get_repository(AdminRepository)),  # noqa: B008
+) -> AdminService:
+    return AdminService(
+        admin_repository=admin_repository,
     )
 
 
