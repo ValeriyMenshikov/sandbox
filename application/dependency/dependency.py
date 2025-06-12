@@ -45,6 +45,11 @@ async def get_http_login_api(
     return LoginApi(Configuration(host=settings.HTTP_API_LOGIN, disable_log=settings.DISABLE_LOG))
 
 
+# Алиасы для старого API
+get_account_api = get_http_account_api
+get_login_api = get_http_login_api
+
+
 async def get_mailhog_api(
     settings: Settings = Depends(get_settings),  # noqa: B008
 ) -> MailhogApi:
