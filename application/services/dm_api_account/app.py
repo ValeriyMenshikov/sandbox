@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, status, FastAPI
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, status, FastAPI, Header
 
 from application.clients.http.dm_api_account.apis.account_api import AccountApi
 from application.clients.http.dm_api_account.apis.login_api import LoginApi
@@ -49,7 +51,7 @@ async def register_user(
     operation_id="GetCurrent",
 )
 async def get_current_user(
-    x_dm_auth_token: str,
+    x_dm_auth_token: Annotated[str | None, Header(description="Авторизационный токен")],
     account_api: AccountApi = Depends(get_http_account_api),  # noqa: B008
 ) -> UserDetailsEnvelope:
     async with service_error_handler():
@@ -78,7 +80,7 @@ async def activate_user(
 )
 async def change_email(
     change_email_data: ChangeEmail,
-    x_dm_auth_token: str,
+    x_dm_auth_token: Annotated[str | None, Header(description="Авторизационный токен")],
     account_api: AccountApi = Depends(get_http_account_api),  # noqa: B008
 ) -> UserEnvelope:
     async with service_error_handler():
@@ -97,7 +99,7 @@ async def change_email(
 )
 async def change_password(
     change_password_data: ChangePassword,
-    x_dm_auth_token: str,
+    x_dm_auth_token: Annotated[str | None, Header(description="Авторизационный токен")],
     account_api: AccountApi = Depends(get_http_account_api),  # noqa: B008
 ) -> UserEnvelope:
     async with service_error_handler():
@@ -146,7 +148,7 @@ async def login(
     summary="Logout as current user",
 )
 async def logout(
-    x_dm_auth_token: str,
+    x_dm_auth_token: Annotated[str | None, Header(description="Авторизационный токен")],
     login_api: LoginApi = Depends(get_http_login_api),  # noqa: B008
 ) -> dict:
     async with service_error_handler():
@@ -162,7 +164,7 @@ async def logout(
     summary="Logout from all devices",
 )
 async def logout_all(
-    x_dm_auth_token: str,
+    x_dm_auth_token: Annotated[str | None, Header(description="Авторизационный токен")],
     login_api: LoginApi = Depends(get_http_login_api),  # noqa: B008
 ) -> dict:
     async with service_error_handler():
