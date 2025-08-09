@@ -11,6 +11,9 @@ from application.clients.brokers.kafka.producer import KafkaProducer
 from application.clients.http.base import Configuration
 from application.clients.http.dm_api_account.apis.account_api import AccountApi
 from application.clients.http.dm_api_account.apis.login_api import LoginApi
+from application.clients.http.dm_api_forum.apis.comment_api import CommentApi
+from application.clients.http.dm_api_forum.apis.forum_api import ForumApi
+from application.clients.http.dm_api_forum.apis.topic_api import TopicApi
 from application.clients.http.mailhog.apis.mailhog_api import MailhogApi
 from application.clients.smtp.client import MailClient
 from application.data_access.ch.access import get_ch_client, get_ch_connection
@@ -54,6 +57,24 @@ async def get_mailhog_api(
     settings: Settings = Depends(get_settings),  # noqa: B008
 ) -> MailhogApi:
     return MailhogApi(Configuration(host=settings.HTTP_MAILHOG, disable_log=settings.DISABLE_LOG))
+
+
+async def get_http_forum_api(
+    settings: Settings = Depends(get_settings),  # noqa: B008
+) -> ForumApi:
+    return ForumApi(Configuration(host=settings.HTTP_API_FORUM, disable_log=settings.DISABLE_LOG))
+
+
+async def get_http_comment_api(
+    settings: Settings = Depends(get_settings),  # noqa: B008
+) -> CommentApi:
+    return CommentApi(Configuration(host=settings.HTTP_API_FORUM, disable_log=settings.DISABLE_LOG))
+
+
+async def get_http_topic_api(
+    settings: Settings = Depends(get_settings),  # noqa: B008
+) -> TopicApi:
+    return TopicApi(Configuration(host=settings.HTTP_API_FORUM, disable_log=settings.DISABLE_LOG))
 
 
 async def account_cache_repository(

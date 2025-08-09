@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status, FastAPI, Header
+from fastapi import APIRouter, Depends, FastAPI, Header, status
 
 from application.clients.http.dm_api_account.apis.account_api import AccountApi
 from application.clients.http.dm_api_account.apis.login_api import LoginApi

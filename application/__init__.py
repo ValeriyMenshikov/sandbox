@@ -6,6 +6,7 @@ from application.services.account.app import app as account_app
 from application.services.broker.app import app as broker_app
 from application.services.admin.app import app as admin_app
 from application.services.dm_api_account.app import app as dm_api_account
+from application.services.dm_api_forum.app import app as dm_api_forum
 from application.logger import LOGGER
 
 APP_MAP = {
@@ -17,4 +18,5 @@ APP_MAP = {
     "broker": broker_app,
     "admin": admin_app,
     "dm_api_account": dm_api_account,
+    "dm_api_forum": dm_api_forum,
 }

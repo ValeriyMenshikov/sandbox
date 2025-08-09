@@ -30,7 +30,7 @@ def serialize(record: dict) -> str:
     log_direction = record["extra"].pop("log_direction", "all")
     subset = {
         "timestamp": record["time"].strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
-        "function": f'{record["name"]}.{record["function"]}:{record["line"]}',
+        "function": f"{record['name']}.{record['function']}:{record['line']}",
         "message": record["message"],
         "level": record["level"].name,
         "log-direction": log_direction,

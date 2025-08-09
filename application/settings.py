@@ -4,6 +4,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     HTTP_API_ACCOUNT: str = "http://5.63.153.31:5051/"
     HTTP_API_LOGIN: str = "http://5.63.153.31:5051/"
+    HTTP_API_FORUM: str = "http://5.63.153.31:5051/"
     HTTP_MAILHOG: str = "http://5.63.153.31:5025/"
     DISABLE_LOG: bool = False
     # DB_HOST: str = "postgres"
