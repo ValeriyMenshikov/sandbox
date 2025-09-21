@@ -165,6 +165,7 @@ async def get_kafka_register_consumer() -> KafkaRegisterConsumer:
             settings.KAFKA_REGISTER_TOPIC,
             bootstrap_servers=settings.KAFKA_URL,
             value_deserializer=lambda message: json.loads(message.decode("utf-8")),
+            group_id="register-events-job",
         ),
     )
 
@@ -184,5 +185,6 @@ async def get_kafka_retry_register_consumer() -> KafkaRetryRegisterConsumer:
             settings.KAFKA_REGISTER_TOPIC_ERROR,
             bootstrap_servers=settings.KAFKA_URL,
             value_deserializer=lambda message: json.loads(message.decode("utf-8")),
+            group_id="register-events-error-job",
         ),
     )
