@@ -28,7 +28,7 @@ async def grpc_server(
         ],
     )
     # TODO переписать чтобы можно было инициализировать несколько сервисов
-    channel = grpc.aio.insecure_channel("5.63.153.31:5055")
+    channel = grpc.aio.insecure_channel("185.185.143.231:5055")
     app.state.account_grpc = account_pb2_grpc.AccountServiceStub(channel)
 
     account_service = AccountApiProxy(app.state.account_grpc)
