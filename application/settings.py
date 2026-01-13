@@ -21,8 +21,8 @@ class Settings(BaseSettings):
     CACHE_PORT: int = 6379
     CACHE_DB: int = 0
     # CH_HOST: str = "localhost"
-    # CH_HOST: str = "clickhouse-sandbox"
-    CH_HOST: str = BASE_HOST
+    CH_HOST: str = "clickhouse-sandbox"
+    # CH_HOST: str = BASE_HOST
     CH_PORT: int = 8123
     CH_DB: str = "sandbox"
     CH_USER: str = ""
