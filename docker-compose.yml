@@ -4,6 +4,9 @@ services:
   app:
     container_name: 'sandbox'
     build: .
+    networks:
+      - default
+      - dm-full-app
     environment:
       - KAFKA_URL=kafka:19092
     ports:
@@ -97,3 +100,7 @@ volumes:
     driver: local
   kafka_data:
     driver: local
+
+networks:
+  dm-full-app:
+    external: true

@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     DB_HOST: str = BASE_HOST
     DB_PORT: int = 5432
     DB_USER: str = "postgres"
-    DB_PASSWORD: str = "admin"
+    DB_PASSWORD: str = "QAZWSX_EDC_2026"
     DB_DRIVER: str = "postgresql+asyncpg"
     DB_NAME: str = "dm3.5"
     CACHE_HOST: str = "redis-sandbox"
@@ -21,8 +21,8 @@ class Settings(BaseSettings):
     CACHE_PORT: int = 6379
     CACHE_DB: int = 0
     # CH_HOST: str = "localhost"
-    CH_HOST: str = "clickhouse-sandbox"
-    # CH_HOST: str = BASE_HOST
+    # CH_HOST: str = "clickhouse-sandbox"
+    CH_HOST: str = BASE_HOST
     CH_PORT: int = 8123
     CH_DB: str = "sandbox"
     CH_USER: str = ""
