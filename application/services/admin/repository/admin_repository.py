@@ -1,5 +1,4 @@
 from datetime import datetime
-import re
 from typing import Optional
 
 from sqlalchemy import text
@@ -10,42 +9,6 @@ from application.logger import LOGGER
 
 
 class AdminRepository(BaseRepository):
-    _USERNAME_RE = re.compile(r"^[a-zA-Z0-9_][a-zA-Z0-9_\-]{0,62}$")
-
-    @classmethod
-    def _validate_username(cls, username: str) -> None:
-        if not cls._USERNAME_RE.fullmatch(username):
-            raise ValueError(
-                "Invalid username. Allowed: letters/digits/_/-, length <= 63, must start with letter/digit/_"
-            )
-
-    @staticmethod
-    def _quote_ident(identifier: str) -> str:
-        return '"' + identifier.replace('"', '""') + '"'
-
-    async def _ensure_readonly_role(self) -> None:
-        await self.execute(
-            text(
-                """
-                DO $$
-                BEGIN
-                  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'readonly_role') THEN
-                    CREATE ROLE readonly_role;
-                  END IF;
-
-                  EXECUTE format('GRANT CONNECT ON DATABASE %I TO readonly_role', current_database());
-
-                  EXECUTE 'GRANT USAGE ON SCHEMA public TO readonly_role';
-                  EXECUTE 'GRANT SELECT ON ALL TABLES IN SCHEMA public TO readonly_role';
-                  EXECUTE 'GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO readonly_role';
-
-                  EXECUTE 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO readonly_role';
-                  EXECUTE 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO readonly_role';
-                END $$;
-                """
-            )
-        )
-
     async def create_readonly_user(
         self,
         username: str,
@@ -64,32 +27,36 @@ class AdminRepository(BaseRepository):
             Exception: Если не удалось создать пользователя или назначить права
         """
         try:
-            self._validate_username(username)
-            quoted_username = self._quote_ident(username)
+            # Экранируем имя пользователя и пароль для безопасного использования в SQL
+            safe_username = username.replace("'", "''")
+            safe_password = password.replace("'", "''")
 
             # Форматируем дату истечения в формате PostgreSQL
             expiration_date_str = expiration_date.strftime("%Y-%m-%d %H:%M:%S")
 
-            await self._ensure_readonly_role()
-
             # Создаем пользователя
             await self.execute(
                 text(
-                    f"CREATE USER {quoted_username} WITH PASSWORD :password VALID UNTIL :valid_until"
+                    f"CREATE USER \"{safe_username}\" WITH PASSWORD '{safe_password}' VALID UNTIL '{expiration_date_str}'"
                 )
-                .bindparams(password=password, valid_until=expiration_date_str)
             )
 
-            await self.execute(text(f"GRANT readonly_role TO {quoted_username}"))
-            await self.execute(text(f"ALTER ROLE {quoted_username} CONNECTION LIMIT 3"))
+            # Назначаем права только на чтение для всех таблиц в схеме public
+            await self.execute(text(f'GRANT USAGE ON SCHEMA public TO "{safe_username}"'))
+
+            await self.execute(text(f'GRANT SELECT ON ALL TABLES IN SCHEMA public TO "{safe_username}"'))
+
+            # Устанавливаем права по умолчанию для будущих таблиц
+            await self.execute(
+                text(f'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO "{safe_username}"')
+            )
 
             LOGGER.info(f"Successfully created read-only user '{username}' with expiration date: {expiration_date_str}")
         except Exception as e:
             LOGGER.error(f"Error creating read-only user: {e}")
             # Если произошла ошибка, пытаемся удалить пользователя, если он был создан
             try:
-                if 'quoted_username' in locals():
-                    await self.execute(text(f"DROP USER IF EXISTS {quoted_username}"))
+                await self.execute(text(f'DROP USER IF EXISTS "{safe_username}"'))
             except Exception as drop_error:
                 LOGGER.error(f"Failed to drop user after error: {drop_error}")
             raise Exception(f"Failed to create read-only user: {str(e)}")
@@ -105,14 +72,17 @@ class AdminRepository(BaseRepository):
             Exception: Если не удалось отозвать доступ
         """
         try:
-            self._validate_username(username)
-            quoted_username = self._quote_ident(username)
+            # Экранируем имя пользователя для безопасного использования в SQL
+            safe_username = username.replace("'", "''")
 
-            await self.execute(text(f"REVOKE readonly_role FROM {quoted_username}"))
+            # Отзываем все права
+            await self.execute(text(f'REVOKE ALL PRIVILEGES ON SCHEMA public FROM "{safe_username}"'))
+
+            await self.execute(text(f'REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM "{safe_username}"'))
 
             # Устанавливаем дату истечения на текущую дату, чтобы немедленно отозвать доступ
             current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            await self.execute(text(f"ALTER USER {quoted_username} VALID UNTIL :valid_until").bindparams(valid_until=current_time))
+            await self.execute(text(f"ALTER USER \"{safe_username}\" VALID UNTIL '{current_time}'"))
 
             LOGGER.info(f"Successfully revoked access for user '{username}'")
         except Exception as e:
@@ -130,8 +100,10 @@ class AdminRepository(BaseRepository):
             bool: True, если пользователь существует, иначе False
         """
         try:
-            self._validate_username(username)
-            result: Result = await self.execute(text("SELECT 1 FROM pg_roles WHERE rolname = :username").bindparams(username=username))
+            # Экранируем имя пользователя для безопасного использования в SQL
+            safe_username = username.replace("'", "''")
+
+            result: Result = await self.execute(text(f"SELECT 1 FROM pg_roles WHERE rolname = '{safe_username}'"))
 
             return result.scalar() is not None
         except Exception as e:
@@ -150,8 +122,12 @@ class AdminRepository(BaseRepository):
             или у него нет срока действия
         """
         try:
-            self._validate_username(username)
-            result: Result = await self.execute(text("SELECT rolvaliduntil FROM pg_roles WHERE rolname = :username").bindparams(username=username))
+            # Экранируем имя пользователя для безопасного использования в SQL
+            safe_username = username.replace("'", "''")
+
+            result: Result = await self.execute(
+                text(f"SELECT rolvaliduntil FROM pg_roles WHERE rolname = '{safe_username}'")
+            )
 
             expiration_date = result.scalar()
 
@@ -175,14 +151,14 @@ class AdminRepository(BaseRepository):
             Exception: Если не удалось продлить срок действия прав
         """
         try:
-            self._validate_username(username)
-            quoted_username = self._quote_ident(username)
+            # Экранируем имя пользователя для безопасного использования в SQL
+            safe_username = username.replace("'", "''")
 
             # Форматируем дату истечения в формате PostgreSQL
             expiration_date_str = new_expiration_date.strftime("%Y-%m-%d %H:%M:%S")
 
             # Продлеваем срок действия прав
-            await self.execute(text(f"ALTER USER {quoted_username} VALID UNTIL :valid_until").bindparams(valid_until=expiration_date_str))
+            await self.execute(text(f"ALTER USER \"{safe_username}\" VALID UNTIL '{expiration_date_str}'"))
 
             LOGGER.info(f"Successfully extended access for user '{username}' until {expiration_date_str}")
         except Exception as e:
