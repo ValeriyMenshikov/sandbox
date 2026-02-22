@@ -1,8 +1,12 @@
 from datetime import datetime
 from typing import Optional
 
+import uuid
+
 from sqlalchemy import text
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.engine import Result
+from sqlalchemy.sql import bindparam
 
 from application.data_access.pg.base_repositoty import BaseRepository
 from application.logger import LOGGER
@@ -167,9 +171,9 @@ class AdminRepository(BaseRepository):
 
     async def upsert_forum_moderator(
         self,
-        forum_moderator_id: str,
-        forum_id: str,
-        user_id: str,
+        forum_moderator_id: uuid.UUID,
+        forum_id: uuid.UUID,
+        user_id: uuid.UUID,
     ) -> None:
         try:
             await self.execute(
@@ -179,16 +183,16 @@ class AdminRepository(BaseRepository):
                     'ON CONFLICT ("ForumModeratorId") DO UPDATE\n'
                     'SET "ForumId" = EXCLUDED."ForumId", "UserId" = EXCLUDED."UserId"'
                 ).bindparams(
-                    forum_moderator_id=forum_moderator_id,
-                    forum_id=forum_id,
-                    user_id=user_id,
+                    bindparam("forum_moderator_id", value=forum_moderator_id, type_=PGUUID(as_uuid=True)),
+                    bindparam("forum_id", value=forum_id, type_=PGUUID(as_uuid=True)),
+                    bindparam("user_id", value=user_id, type_=PGUUID(as_uuid=True)),
                 )
             )
         except Exception as e:
             LOGGER.error(f"Error upserting forum moderator: {e}")
             raise Exception(f"Failed to upsert forum moderator: {str(e)}")
 
-    async def get_forum_moderator(self, forum_moderator_id: str) -> Optional[dict[str, str]]:
+    async def get_forum_moderator(self, forum_moderator_id: uuid.UUID) -> Optional[dict[str, uuid.UUID]]:
         try:
             result: Result = await self.execute(
                 text(
@@ -196,7 +200,7 @@ class AdminRepository(BaseRepository):
                     'FROM public."ForumModerators"\n'
                     'WHERE "ForumModeratorId" = :forum_moderator_id'
                 ).bindparams(
-                    forum_moderator_id=forum_moderator_id,
+                    bindparam("forum_moderator_id", value=forum_moderator_id, type_=PGUUID(as_uuid=True)),
                 ),
                 autocommit=False,
             )
@@ -204,9 +208,9 @@ class AdminRepository(BaseRepository):
             if row is None:
                 return None
             return {
-                "forum_moderator_id": str(row["ForumModeratorId"]),
-                "forum_id": str(row["ForumId"]),
-                "user_id": str(row["UserId"]),
+                "forum_moderator_id": row["ForumModeratorId"],
+                "forum_id": row["ForumId"],
+                "user_id": row["UserId"],
             }
         except Exception as e:
             LOGGER.error(f"Error getting forum moderator: {e}")

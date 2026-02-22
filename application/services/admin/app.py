@@ -185,9 +185,9 @@ async def get_forum_moderator(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Forum moderator not found")
 
         return GetForumModeratorResponse(
-            forum_moderator_id=uuid.UUID(data["forum_moderator_id"]),
-            forum_id=uuid.UUID(data["forum_id"]),
-            user_id=uuid.UUID(data["user_id"]),
+            forum_moderator_id=data["forum_moderator_id"],
+            forum_id=data["forum_id"],
+            user_id=data["user_id"],
         )
 
 

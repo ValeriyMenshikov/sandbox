@@ -125,12 +125,12 @@ class AdminService:
         user_id: uuid.UUID,
     ) -> None:
         await self.admin_repository.upsert_forum_moderator(
-            forum_moderator_id=str(forum_moderator_id),
-            forum_id=str(forum_id),
-            user_id=str(user_id),
+            forum_moderator_id=forum_moderator_id,
+            forum_id=forum_id,
+            user_id=user_id,
         )
 
-    async def get_forum_moderator(self, forum_moderator_id: uuid.UUID) -> Optional[dict[str, str]]:
+    async def get_forum_moderator(self, forum_moderator_id: uuid.UUID) -> Optional[dict[str, uuid.UUID]]:
         return await self.admin_repository.get_forum_moderator(
-            forum_moderator_id=str(forum_moderator_id),
+            forum_moderator_id=forum_moderator_id,
         )
