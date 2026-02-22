@@ -164,3 +164,50 @@ class AdminRepository(BaseRepository):
         except Exception as e:
             LOGGER.error(f"Error extending user access: {e}")
             raise Exception(f"Failed to extend user access: {str(e)}")
+
+    async def upsert_forum_moderator(
+        self,
+        forum_moderator_id: str,
+        forum_id: str,
+        user_id: str,
+    ) -> None:
+        try:
+            await self.execute(
+                text(
+                    'INSERT INTO public."ForumModerators" ("ForumModeratorId", "ForumId", "UserId")\n'
+                    'VALUES (:forum_moderator_id, :forum_id, :user_id)\n'
+                    'ON CONFLICT ("ForumModeratorId") DO UPDATE\n'
+                    'SET "ForumId" = EXCLUDED."ForumId", "UserId" = EXCLUDED."UserId"'
+                ).bindparams(
+                    forum_moderator_id=forum_moderator_id,
+                    forum_id=forum_id,
+                    user_id=user_id,
+                )
+            )
+        except Exception as e:
+            LOGGER.error(f"Error upserting forum moderator: {e}")
+            raise Exception(f"Failed to upsert forum moderator: {str(e)}")
+
+    async def get_forum_moderator(self, forum_moderator_id: str) -> Optional[dict[str, str]]:
+        try:
+            result: Result = await self.execute(
+                text(
+                    'SELECT "ForumModeratorId", "ForumId", "UserId"\n'
+                    'FROM public."ForumModerators"\n'
+                    'WHERE "ForumModeratorId" = :forum_moderator_id'
+                ).bindparams(
+                    forum_moderator_id=forum_moderator_id,
+                ),
+                autocommit=False,
+            )
+            row = result.mappings().one_or_none()
+            if row is None:
+                return None
+            return {
+                "forum_moderator_id": str(row["ForumModeratorId"]),
+                "forum_id": str(row["ForumId"]),
+                "user_id": str(row["UserId"]),
+            }
+        except Exception as e:
+            LOGGER.error(f"Error getting forum moderator: {e}")
+            raise Exception(f"Failed to get forum moderator: {str(e)}")

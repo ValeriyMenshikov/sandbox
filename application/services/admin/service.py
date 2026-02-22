@@ -1,6 +1,9 @@
 import dataclasses
 from datetime import datetime, timedelta
 
+import uuid
+from typing import Optional
+
 from application.logger import LOGGER
 from application.services.admin.repository.admin_repository import AdminRepository
 
@@ -114,3 +117,20 @@ class AdminService:
         LOGGER.info(f"Successfully extended access for user '{username}' until {new_expiration_date}")
 
         return new_expiration_date
+
+    async def upsert_forum_moderator(
+        self,
+        forum_moderator_id: uuid.UUID,
+        forum_id: uuid.UUID,
+        user_id: uuid.UUID,
+    ) -> None:
+        await self.admin_repository.upsert_forum_moderator(
+            forum_moderator_id=str(forum_moderator_id),
+            forum_id=str(forum_id),
+            user_id=str(user_id),
+        )
+
+    async def get_forum_moderator(self, forum_moderator_id: uuid.UUID) -> Optional[dict[str, str]]:
+        return await self.admin_repository.get_forum_moderator(
+            forum_moderator_id=str(forum_moderator_id),
+        )

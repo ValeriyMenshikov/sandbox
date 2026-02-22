@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Optional
+import uuid
 
 from pydantic import BaseModel, Field
 
@@ -48,3 +49,22 @@ class RevokeUserAccessResponse(BaseModel):
 
     username: str
     message: str
+
+
+class UpsertForumModeratorRequest(BaseModel):
+    forum_moderator_id: uuid.UUID = Field(..., description="ForumModeratorId")
+    forum_id: uuid.UUID = Field(..., description="ForumId")
+    user_id: uuid.UUID = Field(..., description="UserId")
+
+
+class UpsertForumModeratorResponse(BaseModel):
+    forum_moderator_id: uuid.UUID
+    forum_id: uuid.UUID
+    user_id: uuid.UUID
+    message: str
+
+
+class GetForumModeratorResponse(BaseModel):
+    forum_moderator_id: uuid.UUID
+    forum_id: uuid.UUID
+    user_id: uuid.UUID
