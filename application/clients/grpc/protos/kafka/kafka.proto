@@ -1,0 +1,41 @@
+syntax = "proto3";
+package kafka;
+
+import "google/protobuf/empty.proto";
+
+service KafkaStreamService {
+  rpc Subscribe(google.protobuf.Empty) returns (stream KafkaMessage);
+}
+
+message KafkaMessage {
+  string topic = 1;
+  bytes value = 2;
+  string key = 3;
+  int32 partition = 4;
+  int64 offset = 5;
+  int64 timestamp_ms = 6;
+}
+
+message RegisterEvent {
+  string login = 1;
+  string email = 2;
+  string password = 3;
+}
+
+message RegisterEventError {
+  RegisterEvent input_data = 1;
+  ErrorMessage error_message = 2;
+  string error_type = 3;
+}
+
+message ErrorList {
+  repeated string values = 1;
+}
+
+message ErrorMessage {
+  string type = 1;
+  string title = 2;
+  int32 status = 3;
+  string trace_id = 4;
+  map<string, ErrorList> errors = 5;
+}

@@ -10,7 +10,10 @@ from application.clients.grpc.account_proxy import (
     account_proxy_pb2,
     account_proxy_pb2_grpc,
 )
+from application.clients.grpc.kafka import kafka_pb2, kafka_pb2_grpc
 from application.clients.grpc.account_proxy.account_api import AccountApiProxy
+from application.clients.grpc.kafka.kafka_api import KafkaStreamService
+from application.dependency.dependency import get_settings
 
 
 @contextlib.asynccontextmanager
@@ -32,6 +35,7 @@ async def grpc_server(
     app.state.account_grpc = account_pb2_grpc.AccountServiceStub(channel)
 
     account_service = AccountApiProxy(app.state.account_grpc)
+    kafka_service = KafkaStreamService(settings=get_settings())
 
     for (
         service_name,
@@ -40,8 +44,16 @@ async def grpc_server(
         add_service_function = getattr(account_proxy_pb2_grpc, f"add_{service_name}Servicer_to_server")
         add_service_function(account_service, server)
 
+    for (
+        service_name,
+        _service_descriptor,
+    ) in kafka_pb2.DESCRIPTOR.services_by_name.items():
+        add_service_function = getattr(kafka_pb2_grpc, f"add_{service_name}Servicer_to_server")
+        add_service_function(kafka_service, server)
+
     service_names = [reflection.SERVICE_NAME]
     service_names.extend(service.full_name for service in account_proxy_pb2.DESCRIPTOR.services_by_name.values())
+    service_names.extend(service.full_name for service in kafka_pb2.DESCRIPTOR.services_by_name.values())
     reflection.enable_server_reflection(service_names, server)
     server.add_insecure_port("[::]:50051")
     await server.start()

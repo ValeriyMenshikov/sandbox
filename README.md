@@ -15,3 +15,12 @@ poetry run python -m grpc_tools.protoc \
     --mypy_grpc_out=readable_stubs,quiet:./application/clients/grpc/account_proxy \
     --python_out=./application/clients/grpc/account_proxy \
     --grpc_python_out=./application/clients/grpc/account_proxy ./application/clients/grpc/protos/account_proxy/account_proxy.proto
+
+
+
+poetry run python -m grpc_tools.protoc \
+    -I=application/clients/grpc/protos/kafka \
+    --mypy_out=readable_stubs,quiet:./application/clients/grpc/kafka \
+    --mypy_grpc_out=readable_stubs,quiet:./application/clients/grpc/kafka \
+    --python_out=./application/clients/grpc/kafka \
+    --grpc_python_out=./application/clients/grpc/kafka ./application/clients/grpc/protos/kafka/kafka.proto
