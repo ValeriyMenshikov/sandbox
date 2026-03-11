@@ -41,7 +41,7 @@ class KafkaStreamService(kafka_pb2_grpc.KafkaStreamServiceServicer):
         try:
             await consumer.start()
             async for message in consumer:
-                if not context.is_active():
+                if context.cancelled():
                     break
                 yield kafka_pb2.KafkaMessage(
                     topic=message.topic,
