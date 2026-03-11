@@ -11,6 +11,7 @@ services:
       - KAFKA_URL=kafka:19092
     ports:
       - '8085:8085'
+      - '50051:50051'
     depends_on:
       - cache
       - clickhouse
