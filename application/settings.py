@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     HTTP_API_LOGIN: str = f"http://{BASE_HOST}:5051/"
     HTTP_API_FORUM: str = f"http://{BASE_HOST}:5051/"
     HTTP_MAILHOG: str = f"http://{BASE_HOST}:5025/"
-    DISABLE_LOG: bool = False
+    DISABLE_LOG: bool = True
     # DB_HOST: str = "postgres"
     DB_HOST: str = BASE_HOST
     DB_PORT: int = 5432
